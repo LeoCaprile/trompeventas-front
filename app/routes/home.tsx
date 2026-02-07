@@ -1,13 +1,16 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { Products } from "~/components/products";
+import { getProductsList } from "~/services/products/products";
 
 export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
+  return [{ title: "Trompeventas.cl" }];
 }
 
-export default function Home() {
-  return <Welcome />;
+export async function loader({ request }: Route.LoaderArgs) {
+  console.log(request.headers.get("cookie"));
+  const product = await getProductsList();
+  return product;
+}
+export default function Home({ loaderData }: Route.ComponentProps) {
+  return <Products products={loaderData} />;
 }
