@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Security
+
+**NEVER commit sensitive information** such as API keys, secrets, tokens, passwords, or credentials to the repository. This includes:
+- `.env` files (already in `.gitignore`)
+- Hardcoded secrets in source code
+- Private keys or certificates
+- Session secrets (e.g., the `secrets` array in `sessionStorage` should use an environment variable in production)
+
+Use environment variables for all sensitive configuration. If a secret is accidentally committed, it must be rotated immediately — removing it from future commits does NOT remove it from git history.
+
 ## Project Overview
 
 This is a React Router 7 e-commerce storefront application built with TypeScript, using server-side rendering (SSR). The app connects to a backend API at `http://localhost:8080` for products and authentication.
@@ -29,27 +39,27 @@ layout("./routes/main-layout.tsx", [
 ])
 ```
 
-- **Layouts**: `main-layout.tsx` wraps authenticated pages and provides the header with user data
+- **Layouts**: `main-layout.tsx` wraps pages and provides the header with user data
 - **Route modules**: Each route file exports `loader`, `action`, `meta`, and default component
 - **Type safety**: Routes use auto-generated types via `Route.LoaderArgs`, `Route.ComponentProps`, etc. from `./+types/[route-name]`
 
-### Authentication Flow
+### Authentication Flow (Single-Cookie Architecture)
 
-Authentication uses `remix-auth` with form-based strategy:
+Authentication uses `remix-auth` with a form-based strategy and a single httpOnly `__session` cookie:
 
-1. **Session storage**: Cookie-based sessions configured in `app/services/auth/auth.ts`
-2. **Authenticator**: Form strategy that calls backend `/auth/sign-in` endpoint
-3. **Session data**: Stores `{ token, user }` in cookie session after successful login
-4. **Protected routes**: Loaders check session and redirect if needed
-5. **API client**: Automatically attaches auth token from session to all API requests
-
-**Important**: The session secret in `auth.ts` is hardcoded as `["s3cr3t"]` - should be replaced with environment variable for production.
+1. **Session storage**: Cookie-based session configured in `app/services/auth/auth.ts`
+2. **Session data**: Stores `{ user, accessToken, refreshToken }` in the `__session` cookie
+3. **Sign-in**: Backend returns tokens in JSON body; frontend stores them in session cookie
+4. **Sign-out**: Frontend reads refreshToken from session, sends to backend for revocation, then destroys session
+5. **Google OAuth**: Uses one-time exchange code pattern — backend redirects with code, frontend exchanges for user + tokens
+6. **Protected routes**: Loaders read session and redirect to `/sign-in` if not authenticated
+7. **API calls**: For authenticated server-side calls, read accessToken from session and send as `Authorization: Bearer` header
 
 ### API Integration
 
 - **Client**: `app/services/client.ts` exports `apiClient` (ky-based HTTP client)
-- **Base URL**: Hardcoded to `http://localhost:8080` - update for production
-- **Auth injection**: `beforeRequest` hook automatically attaches session token to headers
+- **Base URL**: Hardcoded to `http://localhost:8080` — update for production
+- **No cookies sent to backend**: The API client does not use `credentials: "include"`. Authentication is handled via Authorization headers from server-side loaders/actions.
 - **Services**: Domain services in `app/services/` (e.g., `products/products.ts`, `auth/auth.ts`)
 
 ### State Management
@@ -76,15 +86,20 @@ Authentication uses `remix-auth` with form-based strategy:
 ## Key Conventions
 
 - **Import alias**: Use `~/` for imports from `app/` directory (e.g., `~/components/header`)
-- **Type imports**: Route types auto-generated in `.react-router/types/` - import from `./+types/[route]`
+- **Type imports**: Route types auto-generated in `.react-router/types/` — import from `./+types/[route]`
 - **Loader/Action pattern**: Server functions that run before component render
 - **Error boundaries**: Defined in `root.tsx` for global error handling
 
 ## Backend Integration
 
-The backend API is expected to provide:
+The backend API provides:
 
-- `POST /auth/sign-in` - Returns `{ token: string, user: UserT }`
+- `POST /auth/sign-in` - Returns `{ user, accessToken, refreshToken }`
+- `POST /auth/sign-out` - Accepts `{ refreshToken }` in body
+- `POST /auth/refresh` - Accepts `{ refreshToken }`, returns new tokens
+- `GET /auth/me` - Returns `{ user }` (requires Authorization header)
+- `GET /auth/oauth/google` - Returns `{ authUrl }`
+- `POST /auth/oauth/google/exchange` - Returns `{ user, accessToken, refreshToken }`
 - `GET /products` - Returns `Product[]`
 - `GET /products/:id` - Returns `Product`
 
