@@ -8,9 +8,13 @@ import {
 export default [
   route("/sign-out", "./routes/sign-out.tsx"),
   route("/auth/google/callback", "./routes/auth.google.callback.tsx"),
+  route("/api/presign", "./routes/api.presign.tsx"),
   layout("./routes/main-layout.tsx", [
     index("routes/home.tsx"),
     route("/products/:id", "routes/product-detail.tsx"),
     route("/sign-in", "routes/sign-in.tsx"),
+    route("/publish-product", "routes/publish-product.tsx"),
+    route("/profile", "routes/profile.tsx"),
+    route("/my-products", "routes/my-products.tsx"),
   ]),
 ] satisfies RouteConfig;

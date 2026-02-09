@@ -4,20 +4,20 @@ import {
   ArrowLeft,
   Heart,
   Share2,
-  Star,
   ChevronLeft,
   ChevronRight,
   Package,
-  Clock,
   MapPin,
   Calendar,
+  HandCoins,
+  User,
 } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Separator } from "@radix-ui/react-separator";
+import { Separator } from "~/components/ui/separator";
 import { Card, CardContent } from "~/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getProductById } from "~/services/products/products";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -41,6 +41,15 @@ export default function ProductDetailPage({
     );
   };
 
+  const formattedDate = new Date(product.product.created_at).toLocaleDateString(
+    "es-CL",
+    { year: "numeric", month: "long", day: "numeric" },
+  );
+
+  const sellerLocation = [product.seller?.city, product.seller?.region]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <div className="min-h-screen bg-background">
       <main className="pb-16">
@@ -62,11 +71,11 @@ export default function ProductDetailPage({
               <div className="group relative flex items-center justify-center aspect-square overflow-hidden rounded-lg bg-secondary">
                 <img
                   src={
-                    product.images[currentImageIndex].image_url ||
+                    product.images[currentImageIndex]?.image_url ||
                     "/placeholder.svg"
                   }
                   alt={product.product.name}
-                  className="object-cover w-full "
+                  className="object-cover w-full"
                 />
                 {product.images.length > 1 && (
                   <>
@@ -113,12 +122,28 @@ export default function ProductDetailPage({
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <Badge
-                  variant="secondary"
-                  className="bg-secondary text-foreground"
-                >
-                  {product.categories[0].name}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {product.categories?.[0] && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-secondary text-foreground"
+                    >
+                      {product.categories[0].name}
+                    </Badge>
+                  )}
+                  <Badge
+                    variant={product.product.state === "Disponible" ? "default" : "secondary"}
+                    className={
+                      product.product.state === "Vendido"
+                        ? "bg-green-100 text-green-700 hover:bg-green-100"
+                        : product.product.state === "Retirado"
+                          ? "bg-red-100 text-red-700 hover:bg-red-100"
+                          : ""
+                    }
+                  >
+                    {product.product.state}
+                  </Badge>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -129,7 +154,7 @@ export default function ProductDetailPage({
                     <Heart
                       className={`h-5 w-5 ${isFavorited ? "fill-primary text-primary" : ""}`}
                     />
-                    <span className="sr-only">Add to favorites</span>
+                    <span className="sr-only">Agregar a favoritos</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -137,10 +162,11 @@ export default function ProductDetailPage({
                     className="bg-transparent"
                   >
                     <Share2 className="h-5 w-5" />
-                    <span className="sr-only">Share</span>
+                    <span className="sr-only">Compartir</span>
                   </Button>
                 </div>
               </div>
+
               <div>
                 <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
                   {product.product.name}
@@ -149,59 +175,77 @@ export default function ProductDetailPage({
                   ${product.product.price.toLocaleString()}
                 </p>
               </div>
+
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  Quilpue
-                </div>
+                {sellerLocation && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {sellerLocation}
+                  </div>
+                )}
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {new Date(product.product.created_at).toString()}
+                  {formattedDate}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
                   <Package className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Condición: usado</span>
+                  <span className="text-sm font-medium">
+                    {product.product.condition}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2">
+                  <HandCoins className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    {product.product.negotiable}
+                  </span>
                 </div>
               </div>
+
               <Separator />
+
               <div>
                 <h2 className="mb-3 text-lg font-semibold text-foreground">
-                  Description
+                  Descripcion
                 </h2>
                 <p className="whitespace-pre-line text-muted-foreground">
                   {product.product.description}
                 </p>
               </div>
+
               <Separator />
-              <Card className="border-border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-14 w-14 border-2 border-primary">
-                      <AvatarImage src={"/placeholder.svg"} />
-                      <AvatarFallback className="bg-primary text-primary-foreground"></AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-foreground"></h3>
-                      </div>
-                      <div className="mt-1 flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1 text-primary">
-                          <Star className="h-4 w-4 fill-primary" />
-                          <span className="font-medium"></span>
-                        </div>
-                        <span className="text-muted-foreground"></span>
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                        </span>
+
+              {product.seller && (
+                <Card className="border-border bg-card">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-14 w-14 border-2 border-primary">
+                        <AvatarImage
+                          src={product.seller.image || undefined}
+                          alt={product.seller.name}
+                          referrerPolicy="no-referrer"
+                        />
+                        <AvatarFallback className="bg-primary/10">
+                          <User className="h-6 w-6 text-primary" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">
+                          {product.seller.name}
+                        </h3>
+                        {(product.seller.city || product.seller.region) && (
+                          <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {sellerLocation}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
