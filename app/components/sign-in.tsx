@@ -36,7 +36,6 @@ export default function SignInPage({ errors }: Props) {
   };
 
   const handleFacebookLogin = () => {
-    console.log("Login with Facebook");
     // Add your Facebook OAuth logic here
   };
 

@@ -7,7 +7,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  console.log(request.headers.get("cookie"));
   const product = await getProductsList();
   return product;
 }

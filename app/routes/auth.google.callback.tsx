@@ -3,7 +3,6 @@ import type { Route } from "./+types/auth.google.callback";
 import { exchangeOAuthCode, sessionStorage } from "~/services/auth/auth";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  console.log(request);
   const url = new URL(request.url);
   const authCode = url.searchParams.get("auth_code");
 
