@@ -27,6 +27,8 @@ export interface UserT {
   email: string;
   emailVerified: boolean;
   image: string;
+  region: string;
+  city: string;
   createdAt: string;
 }
 
