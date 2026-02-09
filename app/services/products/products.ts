@@ -1,10 +1,18 @@
 import { isHTTPError } from "ky";
 import { apiClient } from "../client";
 
+export interface Seller {
+  name: string;
+  image: string;
+  region: string;
+  city: string;
+}
+
 export interface Product {
   product: ProductDetails;
   images: Image[];
   categories: Category[];
+  seller?: Seller;
 }
 
 export interface ProductDetails {
@@ -12,6 +20,10 @@ export interface ProductDetails {
   name: string;
   description: string;
   price: number;
+  user_id: string | null;
+  condition: string;
+  state: string;
+  negotiable: string;
   created_at: string;
   updated_at: string;
 }
@@ -32,7 +44,6 @@ export interface Category {
 export async function getProductsList() {
   try {
     const request = await apiClient.get<Product[]>("products");
-    console.log(request.headers);
     const products = await request.json();
     return products;
   } catch (error) {
@@ -45,6 +56,27 @@ export async function getProductsList() {
     }
     throw error;
   }
+}
+
+export interface PublishProductData {
+  name: string;
+  description: string;
+  price: number;
+  categories: string[];
+  imageUrls: string[];
+}
+
+export async function publishProduct(
+  data: PublishProductData,
+  accessToken: string,
+) {
+  const response = await apiClient
+    .post("products/publish", {
+      json: data,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    .json<{ product: ProductDetails; images: Image[]; message: string }>();
+  return response;
 }
 
 export async function getProductById(id: string) {
