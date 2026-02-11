@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Route } from "./+types/verify-email";
 import { sessionStorage, type SignInResponse } from "~/services/auth/auth";
 import { redirect, data, useNavigation } from "react-router";
+import { getAuthSession } from "~/services/auth/session.server";
 import {
   Card,
   CardContent,
@@ -18,10 +19,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await sessionStorage.getSession(
-    request.headers.get("cookie"),
-  );
-  const signInData: SignInResponse | undefined = session.get("user");
+  const { signInData, getHeaders } = await getAuthSession(request);
 
   if (!signInData?.user) {
     throw redirect("/sign-in");
@@ -32,37 +30,24 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect("/");
   }
 
-  return data({ user: signInData.user });
+  return data({ user: signInData.user }, { headers: await getHeaders() });
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const session = await sessionStorage.getSession(
-    request.headers.get("cookie"),
-  );
-  const signInData: SignInResponse | undefined = session.get("user");
+  const { signInData, authenticatedFetch, getHeaders } = await getAuthSession(request);
 
   if (!signInData?.accessToken) {
     throw redirect("/sign-in");
   }
 
   try {
-    const response = await fetch("http://localhost:8080/auth/send-verification", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${signInData.accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+    await authenticatedFetch("post", "auth/send-verification");
 
-    if (!response.ok) {
-      const error = await response.json();
-      return data({ error: error.error || "Failed to send email" }, { status: 400 });
-    }
-
-    return data({ success: true, sentAt: Date.now() });
+    return data({ success: true, sentAt: Date.now() }, { headers: await getHeaders() });
   } catch (error) {
     console.error("Error sending verification email:", error);
-    return data({ error: "Failed to send verification email" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to send verification email";
+    return data({ error: message }, { status: 500, headers: await getHeaders() });
   }
 }
 

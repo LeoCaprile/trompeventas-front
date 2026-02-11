@@ -19,10 +19,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await sessionStorage.getSession(
-    request.headers.get("cookie"),
-  );
-  const signInData: SignInResponse | undefined = session.get("user");
+  const { signInData, getHeaders } = await getAuthSession(request);
 
   if (!signInData?.user) {
     throw redirect("/sign-in");
@@ -34,11 +31,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const categories = await getCategories();
 
-  return { categories };
+  return { categories, headers: await getHeaders() };
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const { signInData, authenticatedFetch } = await getAuthSession(request);
+  const { signInData, authenticatedFetch, getHeaders } = await getAuthSession(request);
 
   if (!signInData?.accessToken) {
     throw redirect("/sign-in");
@@ -62,12 +59,14 @@ export async function action({ request }: Route.ActionArgs) {
       json: { name, description, price, condition, negotiable, categories, imageUrls },
     });
 
-    return redirect(`/products/${result.product.id}`);
+    return redirect(`/products/${result.product.id}`, {
+      headers: await getHeaders(),
+    });
   } catch (error) {
     if (error instanceof Response) throw error; // re-throw redirects
     const message =
       error instanceof Error ? error.message : "Error al publicar el producto";
-    return { error: message };
+    return { error: message, headers: await getHeaders() };
   }
 }
 
