@@ -5,3 +5,7 @@
 # React Router
 /.react-router/
 /build/
+
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
