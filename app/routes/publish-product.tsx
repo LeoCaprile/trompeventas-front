@@ -11,13 +11,8 @@ import { PublishProductForm } from "~/components/publish-product-form";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "~/components/ui/card";
 import { AlertTriangle, PackagePlus } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { Link } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Publicar producto - trompeventas.cl" }];
@@ -34,12 +29,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   if (!signInData.user.emailVerified) {
-    return { emailNotVerified: true, categories: [] as CategoryT[] };
+    throw redirect("/verify-email");
   }
 
   const categories = await getCategories();
 
-  return { emailNotVerified: false, categories };
+  return { categories };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -80,31 +75,6 @@ export default function PublishProductPage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  if (loaderData.emailNotVerified) {
-    return (
-      <div className="min-h-[calc(100vh-65px)] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
-            </div>
-            <CardTitle className="text-xl">Email no verificado</CardTitle>
-            <CardDescription>
-              Necesitas verificar tu email antes de poder publicar productos.
-              Revisa tu bandeja de entrada para el enlace de verificacion.
-              Prefiere autenticarte con Google.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Link to="/">
-              <Button variant="outline">Volver al inicio</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-[calc(100vh-65px)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
