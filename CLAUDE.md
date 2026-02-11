@@ -32,10 +32,16 @@ Note: This project uses `pnpm` as the package manager.
 Routes are defined in `app/routes.ts` using React Router's file-based routing config:
 
 ```typescript
+route("/sign-out", "./routes/sign-out.tsx"),
+route("/auth/google/callback", "./routes/auth.google.callback.tsx"),
+route("/api/presign", "./routes/api.presign.tsx"),
 layout("./routes/main-layout.tsx", [
   index("routes/home.tsx"),
   route("/products/:id", "routes/product-detail.tsx"),
   route("/sign-in", "routes/sign-in.tsx"),
+  route("/publish-product", "routes/publish-product.tsx"),
+  route("/profile", "routes/profile.tsx"),
+  route("/my-products", "routes/my-products.tsx"),
 ])
 ```
 
@@ -83,6 +89,10 @@ Authentication uses `remix-auth` with a form-based strategy and a single httpOnl
 3. **Client mutations** use React Query or form actions
 4. **Form actions** handle POST/PUT/DELETE, return data or redirect
 
+### Component Reuse
+
+Always reuse existing domain components before creating new ones. If a component already fulfills the use case (even across different pages), use it instead of duplicating. Shared domain components live in `app/components/` (e.g., `edit-product-dialog.tsx` is used by both `product-detail.tsx` and `my-products-table.tsx`).
+
 ## Key Conventions
 
 - **Import alias**: Use `~/` for imports from `app/` directory (e.g., `~/components/header`)
@@ -100,7 +110,11 @@ The backend API provides:
 - `GET /auth/me` - Returns `{ user }` (requires Authorization header)
 - `GET /auth/oauth/google` - Returns `{ authUrl }`
 - `POST /auth/oauth/google/exchange` - Returns `{ user, accessToken, refreshToken }`
-- `GET /products` - Returns `Product[]`
-- `GET /products/:id` - Returns `Product`
+- `GET /products` - Returns `Product[]`. Supports `?q=` query param for search by name/description
+- `GET /products/:id` - Returns `Product` (includes seller info)
 
-Products have structure: `{ product: ProductDetails, images: Image[], categories: Category[] }`
+Products have structure: `{ product: ProductDetails, images: Image[], categories: Category[], seller?: Seller }`
+
+### Product Search
+
+The home page (`/`) supports URL-based search via `/?q=term`. The header search inputs (desktop inline, expandable, and mobile sheet) are `<Form method="get" action="/">` elements that navigate to `/?q=term`. The home loader reads `q` from the URL and passes it to `getProductsList()`, which sends `GET /products?q=term` to the backend.
