@@ -3,10 +3,11 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { formatRelativeTime } from "./comment-section";
 import type { CommentTree } from "~/services/comments/comments";
+import { FETCHER_STATE } from "~/constants/fetcher-states";
 
 // ─── Mock react-router ──────────────────────────────────────────────────────
 const mockSubmit = vi.fn();
-let mockFetcherState = "idle";
+let mockFetcherState = FETCHER_STATE.IDLE;
 let mockFetcherData: unknown = undefined;
 let mockFetcherFormData: FormData | undefined = undefined;
 
@@ -119,7 +120,7 @@ describe("CommentSection", () => {
 
   beforeEach(() => {
     mockSubmit.mockClear();
-    mockFetcherState = "idle";
+    mockFetcherState = FETCHER_STATE.IDLE;
     mockFetcherData = undefined;
     mockFetcherFormData = undefined;
   });

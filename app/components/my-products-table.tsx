@@ -27,6 +27,7 @@ import {
   PackageOpen,
   Eye,
 } from "lucide-react";
+import { isFetcherBusy } from "~/constants/fetcher-states";
 
 interface MyProductsTableProps {
   products: Product[];
@@ -38,8 +39,8 @@ export function MyProductsTable({ products }: MyProductsTableProps) {
   const deleteFetcher = useFetcher();
   const editFetcher = useFetcher();
 
-  const isDeleting = deleteFetcher.state !== "idle";
-  const isEditing = editFetcher.state !== "idle";
+  const isDeleting = isFetcherBusy(deleteFetcher.state);
+  const isEditing = isFetcherBusy(editFetcher.state);
 
   function handleDelete() {
     if (!deleteTarget) return;

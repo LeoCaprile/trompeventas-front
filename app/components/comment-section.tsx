@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { CommentTree } from "~/services/comments/comments";
+import { FETCHER_STATE, isFetcherBusy } from "~/constants/fetcher-states";
 
 const MAX_INDENT_DEPTH = 5;
 
@@ -118,12 +119,12 @@ function CommentForm({
   onSuccess?: () => void;
 }) {
   const fetcher = useFetcher();
-  const isSubmitting = fetcher.state !== "idle";
+  const isSubmitting = isFetcherBusy(fetcher.state);
   const formRef = useRef<HTMLFormElement>(null);
   const prevState = useRef(fetcher.state);
 
   useEffect(() => {
-    if (prevState.current !== "idle" && fetcher.state === "idle" && fetcher.data && !("error" in fetcher.data)) {
+    if (prevState.current !== FETCHER_STATE.IDLE && fetcher.state === FETCHER_STATE.IDLE && fetcher.data && !("error" in fetcher.data)) {
       formRef.current?.reset();
       onSuccess?.();
     }
@@ -260,7 +261,7 @@ function CommentItem({
   const deleteFetcher = useFetcher();
   const voteFetcher = useFetcher();
 
-  const isDeleting = deleteFetcher.state !== "idle";
+  const isDeleting = isFetcherBusy(deleteFetcher.state);
 
   // Optimistic vote state
   const getOptimisticVote = (): {

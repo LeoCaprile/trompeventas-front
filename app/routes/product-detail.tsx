@@ -37,6 +37,7 @@ import {
   buildCommentTree,
 } from "~/services/comments/comments";
 import { CommentSection } from "~/components/comment-section";
+import { isFetcherBusy } from "~/constants/fetcher-states";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const { signInData, authenticatedFetch, getHeaders } =
@@ -194,8 +195,8 @@ export default function ProductDetailPage({
   const deleteFetcher = useFetcher();
   const editFetcher = useFetcher();
 
-  const isDeleting = deleteFetcher.state !== "idle";
-  const isEditing = editFetcher.state !== "idle";
+  const isDeleting = isFetcherBusy(deleteFetcher.state);
+  const isEditing = isFetcherBusy(editFetcher.state);
 
   const isOwner = product.currentUserId != null && product.currentUserId === product.product.user_id;
 
