@@ -10,21 +10,21 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Form, Link, useSearchParams } from "react-router";
+import { Form, Link, useNavigation } from "react-router";
 import { getGoogleOAuthUrl } from "~/services/auth/auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 
 interface Props {
   errors?: string;
+  success?: boolean;
 }
 
-export default function SignInPage({ errors }: Props) {
-  const [searchParams] = useSearchParams();
-  const oauthError = searchParams.get("error");
-  const sessionExpired = searchParams.get("session_expired");
+export default function SignUpPage({ errors, success }: Props) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     try {
       const authUrl = await getGoogleOAuthUrl();
@@ -35,37 +35,59 @@ export default function SignInPage({ errors }: Props) {
     }
   };
 
-  const handleFacebookLogin = () => {
-    // Add your Facebook OAuth logic here
-  };
+  if (success) {
+    return (
+      <div className="h-[calc(100vh-65px)] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold">
+              ¡Cuenta creada exitosamente!
+            </CardTitle>
+            <CardDescription>
+              Hemos enviado un correo de verificación a tu email.
+              Por favor revisa tu bandeja de entrada y verifica tu cuenta antes de iniciar sesión.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/sign-in">
+              <Button className="w-full" size="lg">
+                Ir a iniciar sesión
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-65px)] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Bienvenido de vuelta
+            Crear cuenta
           </CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus credenciales para acceder a tu cuenta
+            Ingresa tus datos para crear tu cuenta
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {sessionExpired && (
-            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
-              Tu sesión ha expirado. Por favor inicia sesión de nuevo.
-            </div>
-          )}
-          {oauthError && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {oauthError === "oauth_failed"
-                ? "Autenticación fallida. Por favor intenta de nuevo."
-                : oauthError === "oauth_cancelled"
-                  ? "Autenticación cancelada."
-                  : "Ocurrió un error."}
-            </div>
-          )}
           <Form method="POST" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre completo</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Juan Pérez"
+                className="w-full"
+                required
+                disabled={isSubmitting}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
               <Input
@@ -75,6 +97,7 @@ export default function SignInPage({ errors }: Props) {
                 placeholder="nombre@ejemplo.com"
                 className="w-full"
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -83,35 +106,66 @@ export default function SignInPage({ errors }: Props) {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Ingresa tu contraseña"
+                placeholder="Mínimo 8 caracteres"
                 className="w-full"
                 required
+                minLength={8}
+                disabled={isSubmitting}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Repite tu contraseña"
+                className="w-full"
+                required
+                minLength={8}
+                disabled={isSubmitting}
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Iniciar sesión
-              {/* isPending && <LoaderCircle className="animate-spin" />*/}
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creando cuenta...
+                </>
+              ) : (
+                "Crear cuenta"
+              )}
             </Button>
-            {errors && <p className="text-sm text-red-600">{errors}</p>}
+            {errors && (
+              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                {errors}
+              </div>
+            )}
           </Form>
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white px-2 text-slate-500">
-                O continúa con
+                O regístrate con
               </span>
             </div>
           </div>
 
           <Button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignUp}
             variant="outline"
             className="w-full"
             size="lg"
-            disabled={isGoogleLoading}
+            disabled={isGoogleLoading || isSubmitting}
           >
             {isGoogleLoading ? (
               <>
@@ -142,27 +196,15 @@ export default function SignInPage({ errors }: Props) {
               </>
             )}
           </Button>
-
-          <Button
-            onClick={handleFacebookLogin}
-            variant="outline"
-            className="w-full"
-            size="lg"
-          >
-            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="#1877F2">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            Continuar con Facebook
-          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-slate-500">
-            ¿No tienes una cuenta?{" "}
+            ¿Ya tienes una cuenta?{" "}
             <Link
-              to="/sign-up"
+              to="/sign-in"
               className="text-slate-900 font-medium hover:underline"
             >
-              Regístrate
+              Inicia sesión
             </Link>
           </div>
         </CardFooter>
