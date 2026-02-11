@@ -11,14 +11,40 @@ import {
 import { CheckCircle2, Home } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Link } from "react-router";
+import { getAuthSession } from "~/services/auth/session.server";
+import { sessionStorage } from "~/services/auth/auth";
+import { data } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Email verificado - trompeventas.cl" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // No authentication required - anyone can see this page
-  return null;
+  const { signInData, authenticatedFetch, session } = await getAuthSession(request);
+
+  // If user is logged in, fetch updated user data and update session
+  if (signInData?.accessToken) {
+    try {
+      const result = await authenticatedFetch<{ user: any }>("get", "auth/me");
+
+      // Update session with fresh user data (including emailVerified status)
+      signInData.user = result.user;
+      session.set("user", signInData);
+
+      return data(
+        { updated: true },
+        {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Failed to update user session:", error);
+    }
+  }
+
+  return data({ updated: false });
 }
 
 export default function EmailVerifiedPage() {
