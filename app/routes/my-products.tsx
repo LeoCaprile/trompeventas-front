@@ -67,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     try {
-      await authenticatedFetch("post", `products/me/${productId}`, {
+      await authenticatedFetch("put", `products/me/${productId}`, {
         json: {
           name: name.trim(),
           description: description?.trim() || null,
@@ -92,12 +92,12 @@ export default function MyProductsPage({
   loaderData,
 }: Route.ComponentProps) {
   return (
-    <div className="min-h-[calc(100vh-65px)] bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mb-6 sm:mb-8 flex items-start justify-between">
-          <div>
+    <div className="min-h-[calc(100vh-65px)] overflow-x-hidden bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="mx-auto max-w-5xl px-3 py-4 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-4 sm:mb-8 flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <div className="flex items-center gap-3 mb-1 sm:mb-2">
-              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <Package className="h-5 w-5 text-primary" />
               </div>
               <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -108,8 +108,8 @@ export default function MyProductsPage({
               Administra los productos que has publicado.
             </p>
           </div>
-          <Link to="/publish-product">
-            <Button>
+          <Link to="/publish-product" className="shrink-0">
+            <Button size="sm" className="sm:size-default">
               <PackagePlus className="h-4 w-4" />
               <span className="hidden sm:inline">Publicar producto</span>
               <span className="sm:hidden">Publicar</span>
