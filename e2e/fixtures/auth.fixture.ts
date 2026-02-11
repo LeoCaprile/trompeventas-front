@@ -1,6 +1,6 @@
 import { test as base, type Page } from "@playwright/test";
-import { createTestUser, type TestUser } from "../helpers/test-user";
-import { apiSignUp, apiSignIn } from "../helpers/api";
+import { getTestUser, type TestUser } from "../helpers/test-user";
+import { apiSignIn, apiCleanupUserData, apiEnsureTestUser } from "../helpers/api";
 
 interface AuthFixtures {
   testUser: TestUser;
@@ -10,8 +10,9 @@ interface AuthFixtures {
 
 export const test = base.extend<AuthFixtures>({
   testUser: async ({}, use) => {
-    const user = createTestUser();
-    await apiSignUp(user);
+    const user = getTestUser();
+    // Ensure user exists before running test
+    await apiEnsureTestUser(user);
     await use(user);
   },
 
@@ -20,16 +21,32 @@ export const test = base.extend<AuthFixtures>({
       email: testUser.email,
       password: testUser.password,
     });
+
     await use(accessToken);
+
+    // Cleanup user data after test
+    try {
+      await apiCleanupUserData(accessToken);
+    } catch (error) {
+      console.warn("Failed to cleanup user data:", error);
+    }
   },
 
-  authenticatedPage: async ({ page, testUser }, use) => {
+  authenticatedPage: async ({ page, testUser, accessToken }, use) => {
     await page.goto("/sign-in");
     await page.getByLabel("Correo electrónico").fill(testUser.email);
     await page.getByLabel("Contraseña").fill(testUser.password);
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
     await page.waitForURL("/");
+
     await use(page);
+
+    // Cleanup user data after test
+    try {
+      await apiCleanupUserData(accessToken);
+    } catch (error) {
+      console.warn("Failed to cleanup user data:", error);
+    }
   },
 });
 

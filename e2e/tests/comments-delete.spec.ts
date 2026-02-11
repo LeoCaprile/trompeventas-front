@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures/auth.fixture";
-import { apiGetProducts, apiCreateComment, apiSignUp, apiSignIn } from "../helpers/api";
-import { createTestUser } from "../helpers/test-user";
+import { apiGetProducts, apiCreateComment, apiSignIn } from "../helpers/api";
+import { getTestUser2 } from "../helpers/test-user";
 
 test.describe("Comments - delete", () => {
   let productId: string;
@@ -38,9 +38,8 @@ test.describe("Comments - delete", () => {
   test("other users comments do not show dropdown trigger", async ({
     authenticatedPage: page,
   }) => {
-    // Create a comment as a different user via API
-    const otherUser = createTestUser();
-    await apiSignUp(otherUser);
+    // Create a comment as a different user via API (using second persistent test user)
+    const otherUser = getTestUser2();
     const { accessToken: otherToken } = await apiSignIn({
       email: otherUser.email,
       password: otherUser.password,
