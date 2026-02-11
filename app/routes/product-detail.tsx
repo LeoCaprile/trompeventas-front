@@ -11,25 +11,193 @@ import {
   Calendar,
   HandCoins,
   User,
+  Pencil,
+  Trash2,
+  Loader2,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useFetcher, redirect, data } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { EditProductDialog } from "~/components/edit-product-dialog";
 import { getProductById } from "~/services/products/products";
+import { getAuthSession } from "~/services/auth/session.server";
+import {
+  getProductComments,
+  buildCommentTree,
+} from "~/services/comments/comments";
+import { CommentSection } from "~/components/comment-section";
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const product = await getProductById(params.id);
-  return product;
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const { signInData, authenticatedFetch, getHeaders } =
+    await getAuthSession(request);
+  const currentUserId = signInData?.user?.id ?? null;
+
+  const [product, flatComments] = await Promise.all([
+    getProductById(params.id),
+    signInData?.accessToken
+      ? authenticatedFetch<{ comments: Array<import("~/services/comments/comments").CommentFlat> }>(
+          "get",
+          `products/${params.id}/comments`,
+        ).then((res) => res.comments)
+      : getProductComments(params.id),
+  ]);
+
+  const comments = buildCommentTree(flatComments);
+
+  return data(
+    { ...product, currentUserId, comments },
+    { headers: await getHeaders() },
+  );
+}
+
+export async function action({ params, request }: Route.ActionArgs) {
+  const { signInData, authenticatedFetch, getHeaders } =
+    await getAuthSession(request);
+
+  if (!signInData?.accessToken) {
+    throw redirect("/sign-in");
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+
+  if (intent === "delete") {
+    try {
+      await authenticatedFetch("delete", `products/me/${params.id}`);
+      return redirect("/my-products");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al eliminar el producto";
+      return data({ error: message });
+    }
+  }
+
+  if (intent === "update") {
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const price = formData.get("price") as string;
+    const condition = formData.get("condition") as string;
+    const state = formData.get("state") as string;
+    const negotiable = formData.get("negotiable") as string;
+
+    if (!name || !price) {
+      return data({ error: "Campos requeridos faltantes" });
+    }
+
+    try {
+      await authenticatedFetch("put", `products/me/${params.id}`, {
+        json: {
+          name: name.trim(),
+          description: description?.trim() || null,
+          price: parseInt(price, 10),
+          condition: condition || null,
+          state: state || null,
+          negotiable: negotiable || null,
+        },
+      });
+      return data({ success: true }, { headers: await getHeaders() });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al actualizar el producto";
+      return data({ error: message });
+    }
+  }
+
+  if (intent === "add-comment") {
+    const content = formData.get("content") as string;
+    const parentId = formData.get("parentId") as string | null;
+
+    if (!content?.trim()) {
+      return data({ error: "El comentario no puede estar vacio" });
+    }
+
+    try {
+      await authenticatedFetch("post", `products/${params.id}/comments/`, {
+        json: {
+          content: content.trim(),
+          parentId: parentId || null,
+        },
+      });
+      return data({ success: true }, { headers: await getHeaders() });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al crear el comentario";
+      return data({ error: message });
+    }
+  }
+
+  if (intent === "delete-comment") {
+    const commentId = formData.get("commentId") as string;
+
+    try {
+      await authenticatedFetch("delete", `comments/${commentId}`);
+      return data({ success: true }, { headers: await getHeaders() });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al eliminar el comentario";
+      return data({ error: message });
+    }
+  }
+
+  if (intent === "vote-comment") {
+    const commentId = formData.get("commentId") as string;
+    const voteType = formData.get("voteType") as string;
+
+    try {
+      await authenticatedFetch("put", `comments/${commentId}/vote`, {
+        json: { voteType },
+      });
+      return data({ success: true }, { headers: await getHeaders() });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al votar";
+      return data({ error: message });
+    }
+  }
+
+  if (intent === "remove-vote") {
+    const commentId = formData.get("commentId") as string;
+
+    try {
+      await authenticatedFetch("delete", `comments/${commentId}/vote`);
+      return data({ success: true }, { headers: await getHeaders() });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al remover el voto";
+      return data({ error: message });
+    }
+  }
+
+  return data({ error: "Accion no valida" });
 }
 
 export default function ProductDetailPage({
-  loaderData: product,
+  loaderData,
 }: Route.ComponentProps) {
+  const product = loaderData;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
+  const deleteFetcher = useFetcher();
+  const editFetcher = useFetcher();
+
+  const isDeleting = deleteFetcher.state !== "idle";
+  const isEditing = editFetcher.state !== "idle";
+
+  const isOwner = product.currentUserId != null && product.currentUserId === product.product.user_id;
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
@@ -49,6 +217,14 @@ export default function ProductDetailPage({
   const sellerLocation = [product.seller?.city, product.seller?.region]
     .filter(Boolean)
     .join(", ");
+
+  function handleDelete() {
+    deleteFetcher.submit(
+      { intent: "delete" },
+      { method: "POST" },
+    );
+    setShowDeleteDialog(false);
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,6 +321,30 @@ export default function ProductDetailPage({
                   </Badge>
                 </div>
                 <div className="flex gap-2">
+                  {isOwner && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-transparent"
+                        onClick={() => setShowEditDialog(true)}
+                        disabled={isEditing}
+                      >
+                        <Pencil className="h-5 w-5" />
+                        <span className="sr-only">Editar producto</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-transparent text-destructive hover:text-destructive"
+                        onClick={() => setShowDeleteDialog(true)}
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                        <span className="sr-only">Eliminar producto</span>
+                      </Button>
+                    </>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"
@@ -249,7 +449,56 @@ export default function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Separator className="my-8" />
+          <CommentSection
+            comments={product.comments}
+            currentUserId={product.currentUserId}
+            productId={product.product.id}
+          />
+        </div>
       </main>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar producto</DialogTitle>
+            <DialogDescription>
+              Estas seguro de que quieres eliminar &quot;{product.product.name}&quot;?
+              Esta accion no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                "Eliminar"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <EditProductDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        product={product.product}
+        isSubmitting={isEditing}
+        onSubmit={(formData) => editFetcher.submit(formData, { method: "POST" })}
+      />
     </div>
   );
 }

@@ -18,10 +18,8 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
 import { Badge } from "~/components/ui/badge";
+import { EditProductDialog } from "~/components/edit-product-dialog";
 import {
   Pencil,
   Trash2,
@@ -52,13 +50,8 @@ export function MyProductsTable({ products }: MyProductsTableProps) {
     setDeleteTarget(null);
   }
 
-  function handleEdit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    formData.set("intent", "update");
-    formData.set("productId", editTarget!.product.id);
+  function handleEditSubmit(formData: FormData) {
     editFetcher.submit(formData, { method: "POST" });
-    setEditTarget(null);
   }
 
   if (products.length === 0) {
@@ -159,53 +152,61 @@ export function MyProductsTable({ products }: MyProductsTableProps) {
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-border">
         {products.map((product) => (
-          <div key={product.product.id} className="flex items-center gap-3 px-4 py-3">
-            <img
-              src={product.images?.[0]?.image_url || "/placeholder.svg"}
-              alt={product.product.name}
-              className="h-14 w-14 rounded-md object-cover shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{product.product.name}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-primary">
+          <div key={product.product.id} className="px-3 py-3 space-y-2">
+            <div className="flex items-start gap-3">
+              <img
+                src={product.images?.[0]?.image_url || "/placeholder.svg"}
+                alt={product.product.name}
+                className="h-16 w-16 rounded-lg object-cover shrink-0"
+              />
+              <div className="flex-1 min-w-0 pt-0.5">
+                <p className="text-sm font-semibold truncate">{product.product.name}</p>
+                <p className="text-base font-bold text-primary mt-0.5">
                   ${product.product.price.toLocaleString()}
                 </p>
-                <Badge
-                  variant="outline"
-                  className={
-                    product.product.state === "Vendido"
-                      ? "bg-green-100 text-green-700 border-green-300 text-[10px] px-1.5 py-0"
-                      : product.product.state === "Retirado"
-                        ? "bg-red-100 text-red-700 border-red-300 text-[10px] px-1.5 py-0"
-                        : "text-[10px] px-1.5 py-0"
-                  }
-                >
-                  {product.product.state}
-                </Badge>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Badge
+                    variant="outline"
+                    className={
+                      product.product.state === "Vendido"
+                        ? "bg-green-100 text-green-700 border-green-300 text-[10px] px-1.5 py-0"
+                        : product.product.state === "Retirado"
+                          ? "bg-red-100 text-red-700 border-red-300 text-[10px] px-1.5 py-0"
+                          : "text-[10px] px-1.5 py-0"
+                    }
+                  >
+                    {product.product.state}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    {product.product.condition}
+                  </Badge>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+            <div className="flex items-center justify-end gap-0.5">
+              <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" asChild>
                 <Link to={`/products/${product.product.id}`}>
                   <Eye className="h-3.5 w-3.5" />
+                  Ver
                 </Link>
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8"
+                size="sm"
+                className="h-8 gap-1 text-xs text-muted-foreground"
                 onClick={() => setEditTarget(product)}
               >
                 <Pencil className="h-3.5 w-3.5" />
+                Editar
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                size="sm"
+                className="h-8 gap-1 text-xs text-destructive hover:text-destructive"
                 onClick={() => setDeleteTarget(product)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
+                Eliminar
               </Button>
             </div>
           </div>
@@ -244,109 +245,16 @@ export function MyProductsTable({ products }: MyProductsTableProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Edit dialog */}
-      <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar producto</DialogTitle>
-            <DialogDescription>
-              Modifica los datos de tu producto.
-            </DialogDescription>
-          </DialogHeader>
-          {editTarget && (
-            <form onSubmit={handleEdit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nombre</Label>
-                <Input
-                  id="edit-name"
-                  name="name"
-                  required
-                  defaultValue={editTarget.product.name}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Descripcion</Label>
-                <Textarea
-                  id="edit-description"
-                  name="description"
-                  defaultValue={editTarget.product.description ?? ""}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-price">Precio</Label>
-                <Input
-                  id="edit-price"
-                  name="price"
-                  type="number"
-                  required
-                  min={1}
-                  defaultValue={editTarget.product.price}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-condition">Condicion</Label>
-                  <select
-                    id="edit-condition"
-                    name="condition"
-                    defaultValue={editTarget.product.condition}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="Nuevo">Nuevo</option>
-                    <option value="Usado">Usado</option>
-                    <option value="Reacondicionado">Reacondicionado</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-state">Estado</Label>
-                  <select
-                    id="edit-state"
-                    name="state"
-                    defaultValue={editTarget.product.state}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="Disponible">Disponible</option>
-                    <option value="Vendido">Vendido</option>
-                    <option value="Retirado">Retirado</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-negotiable">Negociable</Label>
-                  <select
-                    id="edit-negotiable"
-                    name="negotiable"
-                    defaultValue={editTarget.product.negotiable}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="Conversable">Conversable</option>
-                    <option value="No conversable">No conversable</option>
-                  </select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditTarget(null)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isEditing}>
-                  {isEditing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    "Guardar cambios"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      {editTarget && (
+        <EditProductDialog
+          open={!!editTarget}
+          onOpenChange={(open) => !open && setEditTarget(null)}
+          product={editTarget.product}
+          productId={editTarget.product.id}
+          isSubmitting={isEditing}
+          onSubmit={handleEditSubmit}
+        />
+      )}
     </>
   );
 }
