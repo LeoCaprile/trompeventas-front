@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { Link, useSubmit } from "react-router";
+import { Form, Link, useSearchParams, useSubmit } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -46,6 +46,9 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") ?? "";
   const submit = useSubmit();
 
   const logout = useCallback(() => {
@@ -81,14 +84,18 @@ export function Header({ user }: HeaderProps) {
 
           {/* Search Bar - Desktop */}
           <div className="hidden flex-1 max-w-md xl:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Busca productos"
-                className="w-full pl-10 bg-secondary border-border focus-visible:ring-primary"
-              />
-            </div>
+            <Form method="get" action="/">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  name="q"
+                  defaultValue={q}
+                  placeholder="Busca productos"
+                  className="w-full pl-10 bg-secondary border-border focus-visible:ring-primary"
+                />
+              </div>
+            </Form>
           </div>
 
           {/* Desktop Actions — hidden on mobile */}
@@ -174,7 +181,7 @@ export function Header({ user }: HeaderProps) {
           </div>
 
           {/* Mobile: only hamburger */}
-          <Sheet>
+          <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
@@ -184,14 +191,23 @@ export function Header({ user }: HeaderProps) {
             <SheetContent side="right" className="w-[280px] bg-background">
               <nav className="flex flex-col gap-1 mt-8 p-4">
                 {/* Search inside sheet */}
-                <div className="relative mb-3">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar productos..."
-                    className="w-full pl-10 bg-secondary border-border"
-                  />
-                </div>
+                <Form
+                  method="get"
+                  action="/"
+                  onSubmit={() => setMobileSheetOpen(false)}
+                  className="mb-3"
+                >
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      name="q"
+                      defaultValue={q}
+                      placeholder="Buscar productos..."
+                      className="w-full pl-10 bg-secondary border-border"
+                    />
+                  </div>
+                </Form>
 
                 <Separator className="mb-2" />
 
@@ -297,15 +313,23 @@ export function Header({ user }: HeaderProps) {
         {/* Search bar expandable — only for md–xl (desktop without inline search) */}
         {isSearchOpen && (
           <div className="hidden md:block xl:hidden pb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar productos..."
-                className="w-full pl-10 bg-secondary border-border"
-                autoFocus
-              />
-            </div>
+            <Form
+              method="get"
+              action="/"
+              onSubmit={() => setIsSearchOpen(false)}
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  name="q"
+                  defaultValue={q}
+                  placeholder="Buscar productos..."
+                  className="w-full pl-10 bg-secondary border-border"
+                  autoFocus
+                />
+              </div>
+            </Form>
           </div>
         )}
       </div>

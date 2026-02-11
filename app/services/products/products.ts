@@ -41,9 +41,15 @@ export interface Category {
   name: string;
 }
 
-export async function getProductsList() {
+export async function getProductsList(params?: { q?: string }) {
   try {
-    const request = await apiClient.get<Product[]>("products");
+    const searchParams: Record<string, string> = {};
+    if (params?.q) {
+      searchParams.q = params.q;
+    }
+    const request = await apiClient.get<Product[]>("products", {
+      searchParams,
+    });
     const products = await request.json();
     return products;
   } catch (error) {
