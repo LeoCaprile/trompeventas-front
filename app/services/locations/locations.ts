@@ -1,4 +1,4 @@
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 
 export interface RegionT {
   region: string;
@@ -6,7 +6,7 @@ export interface RegionT {
 }
 
 export async function getRegions(): Promise<RegionT[]> {
-  const data = await apiClient
+  const data = await serverApiClient
     .get("locations/regions")
     .json<{ regiones: RegionT[] }>();
   return data.regiones;

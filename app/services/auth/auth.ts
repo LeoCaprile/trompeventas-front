@@ -1,5 +1,5 @@
 import { isHTTPError } from "ky";
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 import { Authenticator } from "remix-auth";
 import { createCookieSessionStorage } from "react-router";
 import { FormStrategy } from "remix-auth-form";
@@ -34,7 +34,7 @@ export interface UserT {
 
 export async function signIn(userData: UserSignInData): Promise<SignInResponse> {
   try {
-    const response = await apiClient
+    const response = await serverApiClient
       .post("auth/sign-in", {
         json: userData,
       })
@@ -55,7 +55,7 @@ export async function signIn(userData: UserSignInData): Promise<SignInResponse> 
 
 export async function signUp(userData: UserSignUpData) {
   try {
-    const response = await apiClient
+    const response = await serverApiClient
       .post<{ user: UserT }>("auth/sign-up", {
         json: userData,
       })
@@ -76,7 +76,7 @@ export async function signUp(userData: UserSignUpData) {
 
 export async function signOut(refreshToken: string) {
   try {
-    await apiClient.post("auth/sign-out", {
+    await serverApiClient.post("auth/sign-out", {
       json: { refreshToken },
     });
   } catch (error) {
@@ -89,7 +89,7 @@ export async function refreshTokens(
   refreshToken: string,
 ): Promise<{ accessToken: string; refreshToken: string }> {
   try {
-    const response = await apiClient
+    const response = await serverApiClient
       .post("auth/refresh", {
         json: { refreshToken },
       })
@@ -104,7 +104,7 @@ export async function exchangeOAuthCode(
   code: string,
 ): Promise<SignInResponse> {
   try {
-    const response = await apiClient
+    const response = await serverApiClient
       .post("auth/oauth/google/exchange", {
         json: { code },
       })
@@ -121,7 +121,7 @@ export async function exchangeOAuthCode(
 
 export async function getGoogleOAuthUrl(): Promise<string> {
   try {
-    const response = await apiClient
+    const response = await serverApiClient
       .get("auth/oauth/google")
       .json<{ authUrl: string }>();
     return response.authUrl;

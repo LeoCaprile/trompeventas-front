@@ -1,4 +1,4 @@
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 
 export interface CommentAuthor {
   name: string;
@@ -30,7 +30,7 @@ export interface CommentTree extends CommentFlat {
 export async function getProductComments(
   productId: string,
 ): Promise<CommentFlat[]> {
-  const response = await apiClient
+  const response = await serverApiClient
     .get(`products/${productId}/comments`)
     .json<{ comments: CommentFlat[] }>();
   return response.comments;

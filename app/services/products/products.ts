@@ -1,5 +1,5 @@
 import { isHTTPError } from "ky";
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 
 export interface Seller {
   name: string;
@@ -47,7 +47,7 @@ export async function getProductsList(params?: { q?: string }) {
     if (params?.q) {
       searchParams.q = params.q;
     }
-    const request = await apiClient.get<Product[]>("products", {
+    const request = await serverApiClient.get<Product[]>("products", {
       searchParams,
     });
     const products = await request.json();
@@ -76,7 +76,7 @@ export async function publishProduct(
   data: PublishProductData,
   accessToken: string,
 ) {
-  const response = await apiClient
+  const response = await serverApiClient
     .post("products/publish", {
       json: data,
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -87,7 +87,7 @@ export async function publishProduct(
 
 export async function getProductById(id: string) {
   try {
-    const request = await apiClient.get<Product>(`products/${id}`);
+    const request = await serverApiClient.get<Product>(`products/${id}`);
     const products = await request.json();
     return products;
   } catch (error) {

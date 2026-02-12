@@ -1,4 +1,4 @@
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 
 export interface CategoryT {
   id: string;
@@ -7,6 +7,6 @@ export interface CategoryT {
 }
 
 export async function getCategories(): Promise<CategoryT[]> {
-  const categories = await apiClient.get("categories").json<CategoryT[]>();
+  const categories = await serverApiClient.get("categories").json<CategoryT[]>();
   return categories;
 }

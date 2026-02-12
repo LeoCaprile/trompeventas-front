@@ -5,7 +5,7 @@ import {
   refreshTokens,
   type SignInResponse,
 } from "./auth";
-import { apiClient } from "../client";
+import { serverApiClient } from "../client";
 
 /**
  * Reads the session from the request, returning the sign-in data and a
@@ -45,7 +45,7 @@ export async function getAuthSession(request: Request) {
         ...options,
         headers: { Authorization: `Bearer ${token}` },
       };
-      return apiClient[method](url, opts).json<T>();
+      return serverApiClient[method](url, opts).json<T>();
     };
 
     try {
