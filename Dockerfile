@@ -3,6 +3,9 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 FROM base AS development-dependencies-env
 COPY . /app
 WORKDIR /app
