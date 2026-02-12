@@ -26,10 +26,10 @@ export default function SignInPage({ errors }: Props) {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    console.log("cliked");
     try {
       const authUrl = await getGoogleOAuthUrl();
-      window.location.href = authUrl;
+      console.info(authUrl);
+      window.location.replace(authUrl);
     } catch (error) {
       console.error("Failed to initiate Google OAuth:", error);
       setIsGoogleLoading(false);
