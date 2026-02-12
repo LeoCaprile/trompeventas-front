@@ -1,5 +1,5 @@
 import { isHTTPError } from "ky";
-import { serverApiClient } from "../client";
+import { clientApiClient, serverApiClient } from "../client";
 import { Authenticator } from "remix-auth";
 import { createCookieSessionStorage } from "react-router";
 import { FormStrategy } from "remix-auth-form";
@@ -32,7 +32,9 @@ export interface UserT {
   createdAt: string;
 }
 
-export async function signIn(userData: UserSignInData): Promise<SignInResponse> {
+export async function signIn(
+  userData: UserSignInData,
+): Promise<SignInResponse> {
   try {
     const response = await serverApiClient
       .post("auth/sign-in", {
@@ -100,9 +102,7 @@ export async function refreshTokens(
   }
 }
 
-export async function exchangeOAuthCode(
-  code: string,
-): Promise<SignInResponse> {
+export async function exchangeOAuthCode(code: string): Promise<SignInResponse> {
   try {
     const response = await serverApiClient
       .post("auth/oauth/google/exchange", {
@@ -121,7 +121,7 @@ export async function exchangeOAuthCode(
 
 export async function getGoogleOAuthUrl(): Promise<string> {
   try {
-    const response = await serverApiClient
+    const response = await clientApiClient
       .get("auth/oauth/google")
       .json<{ authUrl: string }>();
     return response.authUrl;
