@@ -1,6 +1,7 @@
 import { redirect, data } from "react-router";
 import type { Route } from "./+types/profile";
-import { sessionStorage, type SignInResponse, type UserT } from "~/services/auth/auth.server";
+import { sessionStorage } from "~/services/auth/auth.server";
+import type { SignInResponse, UserT } from "~/services/auth/auth.types";
 import { getAuthSession } from "~/services/auth/session.server";
 import { getRegions } from "~/services/locations/locations";
 import { ProfileForm } from "~/components/profile-form";
