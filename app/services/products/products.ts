@@ -1,5 +1,5 @@
 import { isHTTPError } from "ky";
-import { serverApiClient } from "../client";
+import { serverApiClient } from "../client.server";
 
 export interface Seller {
   name: string;

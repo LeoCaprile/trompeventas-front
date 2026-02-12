@@ -5,7 +5,7 @@ import {
   refreshTokens,
   type SignInResponse,
 } from "./auth";
-import { serverApiClient } from "../client";
+import { serverApiClient } from "../client.server";
 
 /**
  * Reads the session from the request, returning the sign-in data and a

@@ -1,5 +1,6 @@
 import { isHTTPError } from "ky";
-import { clientApiClient, serverApiClient } from "../client";
+import { serverApiClient } from "../client.server";
+import { clientApiClient } from "../client.client";
 import { Authenticator } from "remix-auth";
 import { createCookieSessionStorage } from "react-router";
 import { FormStrategy } from "remix-auth-form";

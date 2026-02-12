@@ -1,4 +1,4 @@
-import { serverApiClient } from "../client";
+import { serverApiClient } from "../client.server";
 
 export interface CategoryT {
   id: string;
