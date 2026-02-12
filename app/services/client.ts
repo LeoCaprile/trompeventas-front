@@ -1,5 +1,5 @@
 import ky from "ky";
 
 export const apiClient = ky.create({
-  prefixUrl: "http://localhost:8080",
+  prefixUrl: import.meta.env.VITE_API_URL,
 });
