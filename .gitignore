@@ -9,3 +9,7 @@
 # Playwright
 e2e/test-results/
 e2e/playwright-report/
+
+# Claude Code
+.claude/
+.agents/
