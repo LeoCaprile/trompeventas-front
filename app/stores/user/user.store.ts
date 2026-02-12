@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { UserT } from "~/services/auth/auth";
+import type { UserT } from "~/services/auth/auth.types";
 
 interface UserStore {
   user: UserT | null;

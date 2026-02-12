@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/publish-product";
-import { sessionStorage, type SignInResponse } from "~/services/auth/auth";
+import { sessionStorage, type SignInResponse } from "~/services/auth/auth.server";
 import { getAuthSession } from "~/services/auth/session.server";
 import {
   getCategories,

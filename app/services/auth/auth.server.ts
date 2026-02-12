@@ -1,37 +1,16 @@
 import { isHTTPError } from "ky";
 import { serverApiClient } from "../client.server";
-import { clientApiClient } from "../client.client";
 import { Authenticator } from "remix-auth";
 import { createCookieSessionStorage } from "react-router";
 import { FormStrategy } from "remix-auth-form";
+import type {
+  UserSignInData,
+  UserSignUpData,
+  SignInResponse,
+  UserT,
+} from "./auth.types";
 
-export interface UserSignInData {
-  email: string;
-  password: string;
-}
-
-export interface UserSignUpData {
-  email: string;
-  password: string;
-  name: string;
-}
-
-export interface SignInResponse {
-  user: UserT;
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface UserT {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  image: string;
-  region: string;
-  city: string;
-  createdAt: string;
-}
+export type { UserSignInData, UserSignUpData, SignInResponse, UserT };
 
 export async function signIn(
   userData: UserSignInData,
@@ -116,25 +95,6 @@ export async function exchangeOAuthCode(code: string): Promise<SignInResponse> {
       const errorResponse: { error: string } = await error.response.json();
       throw Error(errorResponse.error);
     }
-    throw error;
-  }
-}
-
-export async function getGoogleOAuthUrl(): Promise<string> {
-  try {
-    const response = await clientApiClient
-      .get("auth/oauth/google")
-      .json<{ authUrl: string }>();
-    return response.authUrl;
-  } catch (error) {
-    if (isHTTPError(error)) {
-      const errorResponse: { error: string } = await error.response.json();
-      console.error(
-        `[ERROR]:[${error.response.status}]:[${errorResponse.error}]`,
-      );
-      throw Error(errorResponse.error);
-    }
-    console.error(`[ERROR]:[${error}]`);
     throw error;
   }
 }

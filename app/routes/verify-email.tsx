@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Route } from "./+types/verify-email";
-import { sessionStorage, type SignInResponse } from "~/services/auth/auth";
+import { sessionStorage, type SignInResponse } from "~/services/auth/auth.server";
 import { redirect, data, useNavigation } from "react-router";
 import { getAuthSession } from "~/services/auth/session.server";
 import {

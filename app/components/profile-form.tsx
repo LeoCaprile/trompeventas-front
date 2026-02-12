@@ -18,7 +18,7 @@ import {
   Check,
   MapPin,
 } from "lucide-react";
-import type { UserT } from "~/services/auth/auth";
+import type { UserT } from "~/services/auth/auth.types";
 import type { RegionT } from "~/services/locations/locations";
 
 interface AvatarUpload {

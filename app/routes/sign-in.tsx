@@ -1,6 +1,6 @@
 import SignIn from "~/components/sign-in";
 import type { Route } from "./+types/sign-in";
-import { authenticator, sessionStorage } from "~/services/auth/auth";
+import { authenticator, sessionStorage } from "~/services/auth/auth.server";
 import { redirect } from "react-router";
 
 export function meta({}: Route.MetaArgs) {

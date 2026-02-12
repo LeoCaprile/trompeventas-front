@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Form, Link, useSearchParams } from "react-router";
-import { getGoogleOAuthUrl } from "~/services/auth/auth";
+import { getGoogleOAuthUrl } from "~/services/auth/auth.client";
 import { Loader2 } from "lucide-react";
 
 interface Props {
@@ -26,6 +26,7 @@ export default function SignInPage({ errors }: Props) {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    console.log("cliked");
     try {
       const authUrl = await getGoogleOAuthUrl();
       window.location.href = authUrl;

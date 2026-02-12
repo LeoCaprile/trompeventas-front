@@ -1,4 +1,4 @@
-import { sessionStorage, signOut, type SignInResponse } from "~/services/auth/auth";
+import { sessionStorage, signOut, type SignInResponse } from "~/services/auth/auth.server";
 import type { Route } from "./+types/sign-out";
 import { redirect } from "react-router";
 

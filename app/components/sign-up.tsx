@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Form, Link, useNavigation } from "react-router";
-import { getGoogleOAuthUrl } from "~/services/auth/auth";
+import { getGoogleOAuthUrl } from "~/services/auth/auth.client";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
 interface Props {

@@ -12,7 +12,7 @@ import { CheckCircle2, Home } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Link } from "react-router";
 import { getAuthSession } from "~/services/auth/session.server";
-import { sessionStorage } from "~/services/auth/auth";
+import { sessionStorage } from "~/services/auth/auth.server";
 import { data } from "react-router";
 
 export function meta({}: Route.MetaArgs) {

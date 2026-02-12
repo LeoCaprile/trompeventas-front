@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import type { UserT } from "~/services/auth/auth";
+import type { UserT } from "~/services/auth/auth.types";
 
 const categories = [
   "Trompetas",

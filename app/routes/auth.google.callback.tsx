@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/auth.google.callback";
-import { exchangeOAuthCode, sessionStorage } from "~/services/auth/auth";
+import { exchangeOAuthCode, sessionStorage } from "~/services/auth/auth.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);

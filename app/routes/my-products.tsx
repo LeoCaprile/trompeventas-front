@@ -1,6 +1,6 @@
 import { redirect, data } from "react-router";
 import type { Route } from "./+types/my-products";
-import { sessionStorage, type UserT } from "~/services/auth/auth";
+import { sessionStorage, type UserT } from "~/services/auth/auth.server";
 import { getAuthSession } from "~/services/auth/session.server";
 import type { Product } from "~/services/products/products";
 import { MyProductsTable } from "~/components/my-products-table";

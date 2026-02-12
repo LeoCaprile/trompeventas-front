@@ -1,6 +1,6 @@
 import SignUp from "~/components/sign-up";
 import type { Route } from "./+types/sign-up";
-import { sessionStorage, signUp } from "~/services/auth/auth";
+import { sessionStorage, signUp } from "~/services/auth/auth.server";
 import { redirect, data } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
