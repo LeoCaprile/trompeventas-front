@@ -52,11 +52,13 @@ export async function getAuthSession(request: Request) {
       return await makeRequest(signInData.accessToken);
     } catch (error) {
       if (!isHTTPError(error) || error.response.status !== 401) {
+        console.error(`[ERROR]:[authenticatedFetch]:[${error}]`);
         throw error;
       }
 
       // Token expired — try to refresh
       if (!signInData.refreshToken) {
+        console.error("[ERROR]:[authenticatedFetch]:[No refresh token available]");
         throw redirect("/sign-in?session_expired=true");
       }
 
@@ -68,8 +70,9 @@ export async function getAuthSession(request: Request) {
         tokensRefreshed = true;
 
         return await makeRequest(newTokens.accessToken);
-      } catch {
+      } catch (refreshError) {
         // Refresh failed — session is dead
+        console.error(`[ERROR]:[authenticatedFetch]:[Token refresh failed]:[${refreshError}]`);
         throw redirect("/sign-in?session_expired=true", {
           headers: {
             "Set-Cookie": await sessionStorage.destroySession(session),

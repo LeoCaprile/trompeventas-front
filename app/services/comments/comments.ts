@@ -1,3 +1,4 @@
+import { isHTTPError } from "ky";
 import { serverApiClient } from "../client.server";
 
 export interface CommentAuthor {
@@ -30,10 +31,21 @@ export interface CommentTree extends CommentFlat {
 export async function getProductComments(
   productId: string,
 ): Promise<CommentFlat[]> {
-  const response = await serverApiClient
-    .get(`products/${productId}/comments`)
-    .json<{ comments: CommentFlat[] }>();
-  return response.comments;
+  try {
+    const response = await serverApiClient
+      .get(`products/${productId}/comments`)
+      .json<{ comments: CommentFlat[] }>();
+    return response.comments;
+  } catch (error) {
+    console.error(`[ERROR]:[${error}]`);
+    if (isHTTPError(error)) {
+      const errorResponse: { message: string } = await error.response.json();
+      throw Error(
+        `[ERROR]:[${error.response.status}]:[${errorResponse.message}]`,
+      );
+    }
+    throw error;
+  }
 }
 
 export function buildCommentTree(flatComments: CommentFlat[]): CommentTree[] {

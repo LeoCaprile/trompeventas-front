@@ -1,3 +1,4 @@
+import { isHTTPError } from "ky";
 import { serverApiClient } from "../client.server";
 
 export interface RegionT {
@@ -6,8 +7,19 @@ export interface RegionT {
 }
 
 export async function getRegions(): Promise<RegionT[]> {
-  const data = await serverApiClient
-    .get("locations/regions")
-    .json<{ regiones: RegionT[] }>();
-  return data.regiones;
+  try {
+    const data = await serverApiClient
+      .get("locations/regions")
+      .json<{ regiones: RegionT[] }>();
+    return data.regiones;
+  } catch (error) {
+    console.error(`[ERROR]:[${error}]`);
+    if (isHTTPError(error)) {
+      const errorResponse: { message: string } = await error.response.json();
+      throw Error(
+        `[ERROR]:[${error.response.status}]:[${errorResponse.message}]`,
+      );
+    }
+    throw error;
+  }
 }
